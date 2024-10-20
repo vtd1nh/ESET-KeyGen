@@ -98,8 +98,8 @@ jobs:
             Accounts: ${ACCOUNTS}
             Keys: ${KEYS}
           from: vtdinh92@gmail.com # Địa chỉ email gửi
-          server_address: smtp.gmail.com # Máy chủ SMTP cho Gmail
-          server_port: 587 # Cổng SMTP cho Gmail
-          username: vtdinh92@gmail.com # Tên người dùng SMTP
-          password: ${{ secrets.SMTP_PASSWORD }} # Mật khẩu hoặc token SMTP
-          secure: true # Sử dụng kết nối bảo mật (TLS)
+          server_address: smtp.gmail.com
+          server_port: 587 # Cổng 587 cho TLS
+          username: vtdinh92@gmail.com
+          password: ${{ secrets.SMTP_PASSWORD }} # Sử dụng biến bí mật
+          secure: true # Kết nối bảo mật (TLS)
