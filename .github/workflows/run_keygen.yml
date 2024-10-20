@@ -2,7 +2,7 @@ name: Generator
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Chạy mỗi 5 phút
+    - cron: "0 0 1 * *" # Chạy vào 00:00 ngày mùng 1 mỗi tháng
     
   workflow_dispatch:
     inputs:
