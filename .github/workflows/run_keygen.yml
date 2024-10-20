@@ -2,7 +2,7 @@ name: Generator
 
 on:
   schedule:
-    - cron: '0 0 1 * *' # Chạy vào lúc 00:00 ngày 1 hàng tháng
+    - cron: '*/5 * * * *'  # Chạy mỗi 5 phút    
   workflow_dispatch:
     inputs:
       account:
@@ -80,15 +80,6 @@ jobs:
           # Set environment variables to be used in later steps
           echo "ACCOUNTS=${ACCOUNTS}" >> $GITHUB_ENV
           echo "KEYS=${KEYS}" >> $GITHUB_ENV
-
-      - name: Clean output
-        run: |
-          if [ -f ./ACCOUNTS.txt ]; then
-            sed -i '/^-------------------------------------------------/d' ./ACCOUNTS.txt
-          fi
-          if [ -f ./KEYS.txt ]; then
-            sed -i '/^-------------------------------------------------/d' ./KEYS.txt
-          fi
 
       - name: Verify Variables
         run: |
