@@ -89,8 +89,8 @@ jobs:
 
       - name: Verify Variables
         run: |
-          echo "ACCOUNTS: ${{ env.ACCOUNTS }}"
-          echo "KEYS: ${{ env.KEYS }}"
+          echo "ACCOUNTS: ${ACCOUNTS}"
+          echo "KEYS: ${KEYS}"
 
       - name: Send email with results
         uses: dawidd6/action-send-mail@v3
