@@ -102,4 +102,4 @@ jobs:
           server_port: 587 # Cổng 587 cho TLS
           username: vtdinh92@gmail.com
           password: ${{ secrets.SMTP_PASSWORD }} # Sử dụng biến bí mật
-          secure: true # Kết nối bảo mật (TLS)
+          secure: false # Kết nối bảo mật (TLS)
