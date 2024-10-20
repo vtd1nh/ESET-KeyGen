@@ -87,7 +87,7 @@ jobs:
       - name: Send email with results
         uses: dawidd6/action-send-mail@v3
         with:
-          to: your_email@gmail.com # Địa chỉ email nhận
+          to: vtdinh92@gmail.com # Địa chỉ email nhận
           subject: "ESET KeyGen Results"
           body: |
             The generation process is complete.
