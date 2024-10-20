@@ -30,8 +30,6 @@ on:
         - --small-business-key
         - --vpn-codes
         default: --key
-  schedule:
-    - cron: "0 0 1 * *" # Chạy vào lúc 00:00 ngày mùng 1 hàng tháng
 
 jobs:
   GenerateKey:
@@ -58,31 +56,37 @@ jobs:
           source venv/bin/activate
           pip install -r requirements.txt
 
+          # Initialize variables
+          ACCOUNTS=""
+          KEYS=""
+
           if [[ ${ACCOUNT} -ne 0 && ${KEY} -ne 0 ]]; then
             seq 1 ${ACCOUNT} | xargs -I {} -P ${ACCOUNT} python3 main.py --chrome --account --email-api ${MAIL} --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar &
             seq 1 ${KEY} | xargs -I {} -P ${KEY} python3 main.py --chrome ${KEY_TYPE} --email-api ${MAIL} --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar
             wait
-            echo "Account:" >> $GITHUB_STEP_SUMMARY
-            cat ./*ACCOUNTS.txt >> $GITHUB_STEP_SUMMARY
-            echo -e "\nKey:" >> $GITHUB_STEP_SUMMARY
-            cat ./*KEYS.txt >> $GITHUB_STEP_SUMMARY
-            ACCOUNTS=$(cat ./*ACCOUNTS.txt) # Lưu kết quả vào biến
-            KEYS=$(cat ./*KEYS.txt) # Lưu kết quả vào biến
+            # Read accounts and keys from files
+            ACCOUNTS=$(cat ./*ACCOUNTS.txt | tr '\n' ', ')
+            KEYS=$(cat ./*KEYS.txt | tr '\n' ', ')
           elif [[ ${ACCOUNT} -ne 0 ]]; then
             seq 1 ${ACCOUNT} | xargs -I {} -P ${ACCOUNT} python3 main.py --chrome --account --email-api ${MAIL} --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar
-            echo -e "\nAccount:" >> $GITHUB_STEP_SUMMARY
-            cat ./*ACCOUNTS.txt >> $GITHUB_STEP_SUMMARY
-            ACCOUNTS=$(cat ./*ACCOUNTS.txt) # Lưu kết quả vào biến
+            ACCOUNTS=$(cat ./*ACCOUNTS.txt | tr '\n' ', ')
           elif [[ ${KEY} -ne 0 ]]; then
             seq 1 ${KEY} | xargs -I {} -P ${KEY} python3 main.py --chrome ${KEY_TYPE} --email-api ${MAIL} --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar
-            echo -e "\nKey:" >> $GITHUB_STEP_SUMMARY
-            cat ./*KEYS.txt >> $GITHUB_STEP_SUMMARY
-            KEYS=$(cat ./*KEYS.txt) # Lưu kết quả vào biến
+            KEYS=$(cat ./*KEYS.txt | tr '\n' ', ')
           fi
-          
-          # Ghi vào môi trường
-          echo "ACCOUNTS=$ACCOUNTS" >> $GITHUB_ENV
-          echo "KEYS=$KEYS" >> $GITHUB_ENV
+
+          # Set environment variables
+          echo "ACCOUNTS=${ACCOUNTS}" >> $GITHUB_ENV
+          echo "KEYS=${KEYS}" >> $GITHUB_ENV
+
+      - name: Verify Variables
+        run: |
+          echo "ACCOUNTS: ${ACCOUNTS}"
+          echo "KEYS: ${KEYS}"
+
+      - name: List Files in ESET-KeyGen Directory
+        run: |
+          ls -l ESET-KeyGen
 
       - name: Send email with results
         uses: dawidd6/action-send-mail@v3
@@ -91,12 +95,8 @@ jobs:
           subject: "ESET KeyGen Results"
           body: |
             The generation process is complete.
-
-            **Accounts Created:**
-            ${{ env.ACCOUNTS }}
-
-            **Keys Generated:**
-            ${{ env.KEYS }}
+            Accounts: ${ACCOUNTS}
+            Keys: ${KEYS}
           from: vtdinh92@gmail.com # Địa chỉ email gửi
           server_address: smtp.gmail.com # Máy chủ SMTP cho Gmail
           server_port: 587 # Cổng SMTP cho Gmail
