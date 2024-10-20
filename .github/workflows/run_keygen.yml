@@ -91,8 +91,8 @@ jobs:
           subject: "ESET KeyGen Results"
           body: |
             The generation process is complete.
-            Accounts: ${{ env.ACCOUNTS }} # Sử dụng biến môi trường
-            Keys: ${{ env.KEYS }} # Sử dụng biến môi trường
+            Accounts: ${{ env.ACCOUNTS }}
+            Keys: ${{ env.KEYS }}
           from: vtdinh92@gmail.com # Địa chỉ email gửi
           server_address: smtp.gmail.com
           server_port: 587 # Cổng 587 cho TLS
