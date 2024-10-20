@@ -97,9 +97,9 @@ jobs:
 
             **Keys Generated:**
             ${{ steps.generate_key.outputs.keys }}
-          from: your_smtp_email@example.com # Địa chỉ email gửi
-          server: smtp.example.com # Máy chủ SMTP
+          from: vtdinh92@gmail.com # Địa chỉ email gửi
+          server: smtp.gmail.com # Máy chủ SMTP
           port: 587 # Cổng SMTP
-          username: your_smtp_email@example.com # Tên người dùng SMTP
+          username: vtdinh92@gmail.com # Tên người dùng SMTP
           password: ${{ secrets.SMTP_PASSWORD }} # Mật khẩu hoặc token SMTP
           secure: true # Sử dụng kết nối bảo mật (TLS)
