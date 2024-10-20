@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Generate key
         id: generate_key
@@ -80,26 +80,26 @@ jobs:
             KEYS=$(cat ./*KEYS.txt) # Lưu kết quả vào biến
           fi
           
-          # Cung cấp output cho các bước sau
-          echo "::set-output name=accounts::$ACCOUNTS"
-          echo "::set-output name=keys::$KEYS"
+          # Ghi vào môi trường
+          echo "ACCOUNTS=$ACCOUNTS" >> $GITHUB_ENV
+          echo "KEYS=$KEYS" >> $GITHUB_ENV
 
       - name: Send email with results
         uses: dawidd6/action-send-mail@v3
         with:
-          to: your_email@example.com # Địa chỉ email nhận
+          to: your_email@gmail.com # Địa chỉ email nhận
           subject: "ESET KeyGen Results"
           body: |
             The generation process is complete.
 
             **Accounts Created:**
-            ${{ steps.generate_key.outputs.accounts }}
+            ${{ env.ACCOUNTS }}
 
             **Keys Generated:**
-            ${{ steps.generate_key.outputs.keys }}
+            ${{ env.KEYS }}
           from: vtdinh92@gmail.com # Địa chỉ email gửi
-          server: smtp.gmail.com # Máy chủ SMTP
-          port: 587 # Cổng SMTP
+          server_address: smtp.gmail.com # Máy chủ SMTP cho Gmail
+          server_port: 587 # Cổng SMTP cho Gmail
           username: vtdinh92@gmail.com # Tên người dùng SMTP
           password: ${{ secrets.SMTP_PASSWORD }} # Mật khẩu hoặc token SMTP
           secure: true # Sử dụng kết nối bảo mật (TLS)
