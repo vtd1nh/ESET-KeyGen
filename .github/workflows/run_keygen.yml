@@ -1,43 +1,3 @@
-name: Generator
-
-on:
-  workflow_dispatch:
-    inputs:
-      account:
-        description: 'Number of Accounts to be generated (default = 0)'
-        required: false
-        default: '0'
-      key:
-        description: 'Number of Keys to be generated (default = 1)'
-        required: false
-        default: '1'
-      mail:
-        description: 'Choose the mail provider to generate license'
-        required: true
-        type: choice
-        options:
-        - 1secmail
-        - guerrillamail
-        - developermail
-        - mailticking
-        default: developermail
-      key_type:
-        description: 'Modes of operation'
-        required: true
-        type: choice
-        options:
-        - --key
-        - --small-business-key
-        - --vpn-codes
-        default: --key
-
-jobs:
-  GenerateKey:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Generate key
         id: generate_key
         run: |
@@ -75,7 +35,7 @@ jobs:
             KEYS=$(cat ./*KEYS.txt | tr '\n' ', ')
           fi
 
-          # Set environment variables
+          # Set environment variables to be used in later steps
           echo "ACCOUNTS=${ACCOUNTS}" >> $GITHUB_ENV
           echo "KEYS=${KEYS}" >> $GITHUB_ENV
 
@@ -84,10 +44,6 @@ jobs:
           echo "ACCOUNTS: ${ACCOUNTS}"
           echo "KEYS: ${KEYS}"
 
-      - name: List Files in ESET-KeyGen Directory
-        run: |
-          ls -l ESET-KeyGen
-
       - name: Send email with results
         uses: dawidd6/action-send-mail@v3
         with:
@@ -95,8 +51,8 @@ jobs:
           subject: "ESET KeyGen Results"
           body: |
             The generation process is complete.
-            Accounts: ${ACCOUNTS}
-            Keys: ${KEYS}
+            Accounts: ${{ env.ACCOUNTS }} # Sử dụng biến môi trường
+            Keys: ${{ env.KEYS }} # Sử dụng biến môi trường
           from: vtdinh92@gmail.com # Địa chỉ email gửi
           server_address: smtp.gmail.com
           server_port: 587 # Cổng 587 cho TLS
