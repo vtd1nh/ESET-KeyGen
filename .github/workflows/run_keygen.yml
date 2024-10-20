@@ -41,13 +41,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Set default values
+        id: set_defaults
+        run: |
+          # Kiểm tra xem workflow có chạy từ cron hay không
+          if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
+            ACCOUNT=0
+            KEY=1
+            MAIL=developermail
+            KEY_TYPE=--key
+          else
+            ACCOUNT=${{ github.event.inputs.account }}
+            KEY=${{ github.event.inputs.key }}
+            MAIL=${{ github.event.inputs.mail }}
+            KEY_TYPE=${{ github.event.inputs.key_type }}
+          fi
+          
+          echo "ACCOUNT=${ACCOUNT}" >> $GITHUB_ENV
+          echo "KEY=${KEY}" >> $GITHUB_ENV
+          echo "MAIL=${MAIL}" >> $GITHUB_ENV
+          echo "KEY_TYPE=${KEY_TYPE}" >> $GITHUB_ENV
+
       - name: Generate key
         id: generate_key
         run: |
-          ACCOUNT=${{ github.event.inputs.account }}
-          KEY=${{ github.event.inputs.key }}
-          MAIL=${{ github.event.inputs.mail }}
-          KEY_TYPE=${{ github.event.inputs.key_type }}
+          ACCOUNT=${{ env.ACCOUNT }}
+          KEY=${{ env.KEY }}
+          MAIL=${{ env.MAIL }}
+          KEY_TYPE=${{ env.KEY_TYPE }}
 
           git clone https://github.com/rzc0d3r/ESET-KeyGen.git
           cd ESET-KeyGen
