@@ -1,4 +1,4 @@
-name: Generator
+name: Trial-Key & Account generator
 
 on:
   schedule:
