@@ -1,3 +1,43 @@
+name: Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: 'Number of Accounts to be generated (default = 0)'
+        required: false
+        default: '0'
+      key:
+        description: 'Number of Keys to be generated (default = 1)'
+        required: false
+        default: '1'
+      mail:
+        description: 'Choose the mail provider to generate license'
+        required: true
+        type: choice
+        options:
+        - 1secmail
+        - guerrillamail
+        - developermail
+        - mailticking
+        default: developermail
+      key_type:
+        description: 'Modes of operation'
+        required: true
+        type: choice
+        options:
+        - --key
+        - --small-business-key
+        - --vpn-codes
+        default: --key
+
+jobs:
+  GenerateKey:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Generate key
         id: generate_key
         run: |
