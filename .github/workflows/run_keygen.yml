@@ -1,6 +1,8 @@
 name: Generator
 
 on:
+  schedule:
+    - cron: '0 0 1 * *' # Chạy vào lúc 00:00 ngày 1 hàng tháng
   workflow_dispatch:
     inputs:
       account:
