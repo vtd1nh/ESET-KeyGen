@@ -2,7 +2,7 @@ name: Trial-Key & Account generator
 
 on:
   schedule:
-    - cron: "0 13 4 * *" # Chạy vào 00:00 ngày mùng 1 mỗi tháng
+    - cron: "0 0 5 * *" # Chạy vào 00:00 ngày mùng 1 mỗi tháng
     
   workflow_dispatch:
     inputs:
