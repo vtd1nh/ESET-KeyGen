@@ -1,5 +1,5 @@
 # ESET-KeyGen
-ESET-KeyGen - Trial-Key & Account generator for ESET Antivirus (last test was on 23.11.2024 at 15:19 UTC+3)
+ESET-KeyGen - Trial-Key & Account generator for ESET Antivirus (last test was on 04.12.2024 at 02:07 UTC+3)
 
 # Project Preview
 ![](img/project_preview.png)
@@ -98,8 +98,9 @@ Delete your current ESET HOME account
 ## How to use (Part 2)
 1. [Account Generator](wiki/AccountGenerator.md)
 2. [Key Generator](wiki/KeyGenerator.md)
-3. [Command Line Arguments](wiki/CommandLineArguments.md)
-4. [Updater](wiki/Updater.md)
+3. [Reset ESET VPN](wiki/ResetEsetVPN.md)
+4. [Command Line Arguments](wiki/CommandLineArguments.md)
+5. [Updater](wiki/Updater.md)
 ---
 
 # Additional information
