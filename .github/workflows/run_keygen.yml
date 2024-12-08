@@ -41,6 +41,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Setup Chrome
+        run: |
+          sudo apt update
+          sudo apt install -y chromium-browser chromium-chromedriver
+          chromium-browser --version
+          chromedriver --version
+
       - name: Set default values
         id: set_defaults
         run: |
