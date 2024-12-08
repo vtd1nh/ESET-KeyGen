@@ -2,7 +2,7 @@ name: Trial-Key & Account generator
 
 on:
   schedule:
-    - cron: "0 12 8 * *" # Chạy vào 00:00 ngày mùng 1 mỗi tháng
+    - cron: "0 1 9 * *" # Chạy vào 00:00 ngày mùng 1 mỗi tháng
     
   workflow_dispatch:
     inputs:
@@ -23,7 +23,7 @@ on:
         - guerrillamail
         - developermail
         - mailticking
-        default: developermail
+        default: 1secmail
       key_type:
         description: 'Modes of operation'
         required: true
@@ -55,7 +55,7 @@ jobs:
           if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
             ACCOUNT=0
             KEY=1
-            MAIL=developermail
+            MAIL=1secmail
             KEY_TYPE=--key
           else
             ACCOUNT=${{ github.event.inputs.account }}
