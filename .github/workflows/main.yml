@@ -1,0 +1,72 @@
+name: Generator
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Chạy mỗi 5 phút
+
+jobs:
+  GenerateKey:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Google Chrome
+        run: |
+          sudo apt update
+          sudo apt install -y google-chrome-stable
+          google-chrome --version
+
+      - name: Install ChromeDriver
+        run: |
+          sudo apt install -y chromium-chromedriver
+          chromedriver --version
+
+      - name: Generate key
+        id: generate_key
+        run: |
+          ACCOUNT=0
+          KEY=1
+          MAIL=1secmail
+          KEY_TYPE=--key
+
+          git clone https://github.com/rzc0d3r/ESET-KeyGen.git
+          cd ESET-KeyGen
+          
+          # Setup env
+          sudo apt install -y python3-pip python3-venv
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+          # Run KeyGen
+          seq 1 ${KEY} | xargs -I {} -P ${KEY} python3 main.py --chrome ${KEY_TYPE} --email-api ${MAIL} --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --custom-browser-location "/usr/bin/google-chrome" 2>&1 | tee debug_log.txt
+
+          # Handle missing KEYS.txt
+          if [[ -f ./*KEYS.txt ]]; then
+            KEYS=$(cat ./*KEYS.txt | tr '\n' ', ')
+          else
+            KEYS="No keys generated"
+          fi
+
+          # Set environment variables
+          echo "KEYS=${KEYS}" >> $GITHUB_ENV
+
+      - name: Verify Variables
+        run: |
+          echo "KEYS: ${KEYS}"
+
+      - name: Send email with results
+        uses: dawidd6/action-send-mail@v3
+        with:
+          to: vtdinh92@gmail.com
+          subject: "ESET KeyGen Results"
+          body: |
+            The generation process is complete.
+            Keys: ${{ env.KEYS }}
+          from: vtdinh92@gmail.com
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: vtdinh92@gmail.com
+          password: ${{ secrets.SMTP_PASSWORD }}
+          secure: false
