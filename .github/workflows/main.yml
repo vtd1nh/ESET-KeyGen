@@ -19,11 +19,14 @@ jobs:
 
       - name: Install ChromeDriver
         run: |
-          sudo apt install -y chromium-chromedriver
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d'.' -f1)
+          wget -N https://chromedriver.storage.googleapis.com/$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION)/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/bin/chromedriver
+          chmod +x /usr/bin/chromedriver
           chromedriver --version
 
       - name: Generate key
-        id: generate_key
         run: |
           ACCOUNT=0
           KEY=1
@@ -40,8 +43,10 @@ jobs:
           pip install -r requirements.txt
 
           # Run KeyGen
-          seq 1 ${KEY} | xargs -I {} -P ${KEY} python3 main.py --chrome ${KEY_TYPE} --email-api ${MAIL} --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --custom-browser-location "/usr/bin/google-chrome" 2>&1 | tee debug_log.txt
-
+          python3 main.py --chrome ${KEY_TYPE} --email-api ${MAIL} \
+          --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar \
+          --custom-browser-location "/usr/bin/google-chrome" 2>&1 | tee debug_log.txt
+          
           # Handle missing KEYS.txt
           if [[ -f ./*KEYS.txt ]]; then
             KEYS=$(cat ./*KEYS.txt | tr '\n' ', ')
