@@ -2,8 +2,7 @@ name: Trial-Key & Account generator
 
 on:
   schedule:
-    - cron: "0 1 9 * *" # Chạy vào 00:00 ngày mùng 1 mỗi tháng
-    
+    - cron: "0 0 1 * *"  # Chạy vào 00:00 ngày 1 hàng tháng
   workflow_dispatch:
     inputs:
       account:
@@ -46,116 +45,105 @@ on:
         default: macOS
 
 jobs:
-  GenerateKey:
+  Linux:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Google Chrome
+      - name: Generate key (Linux)
+        if: github.event.inputs.os == 'Linux' || github.event_name == 'schedule'
         run: |
-          sudo apt update
-          sudo apt install -y wget curl unzip
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt install -y ./google-chrome-stable_current_amd64.deb
-          google-chrome --version
-
-      - name: Install ChromeDriver
-        run: |
-          CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d'.' -f1)
-          CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}")
-          wget -N "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip"
-          unzip chromedriver_linux64.zip
-          sudo mv chromedriver /usr/bin/chromedriver
-          sudo chmod +x /usr/bin/chromedriver
-          chromedriver --version
-
-      - name: Set default values
-        id: set_defaults
-        run: |
-          if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
-            ACCOUNT=0
-            KEY=1
-            MAIL=1secmail
-            KEY_TYPE=--key
-            OS=Windows
-          else
-            ACCOUNT=${{ github.event.inputs.account }}
-            KEY=${{ github.event.inputs.key }}
-            MAIL=${{ github.event.inputs.mail }}
-            KEY_TYPE=${{ github.event.inputs.key_type }}
-            OS=${{ github.event.inputs.os }}
-          fi
-          
-          echo "ACCOUNT=${ACCOUNT}" >> $GITHUB_ENV
-          echo "KEY=${KEY}" >> $GITHUB_ENV
-          echo "MAIL=${MAIL}" >> $GITHUB_ENV
-          echo "KEY_TYPE=${KEY_TYPE}" >> $GITHUB_ENV
-          echo "OS=${OS}" >> $GITHUB_ENV
-
-      - name: Generate key
-        id: generate_key
-        run: |
-          ACCOUNT=${{ env.ACCOUNT }}
-          KEY=${{ env.KEY }}
-          MAIL=${{ env.MAIL }}
-          KEY_TYPE=${{ env.KEY_TYPE }}
-          OS=${{ env.OS }}
+          ACCOUNT=${{ github.event.inputs.account || '0' }}
+          KEY=${{ github.event.inputs.key || '1' }}
+          MAIL=${{ github.event.inputs.mail || 'developermail' }}
+          KEY_TYPE=${{ github.event.inputs.key_type || '--key' }}
 
           git clone https://github.com/rzc0d3r/ESET-KeyGen.git
           cd ESET-KeyGen
           
+          # Setup env
+          sudo apt update
           sudo apt install -y python3-pip python3-venv
           python3 -m venv venv
           source venv/bin/activate
           pip install -r requirements.txt
 
-          python3 main.py --chrome ${KEY_TYPE} --email-api ${MAIL} \
-          --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar \
-          --custom-browser-location "/usr/bin/google-chrome" 2>&1 | tee debug_log.txt
-
-          # Initialize variables
-          ACCOUNTS=""
-          KEYS=""
-
-          if [[ $ACCOUNT -ne 0 && $KEY -ne 0 ]]; then
-            python3 main.py --chrome --account --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $ACCOUNT
-            python3 main.py --chrome $KEY_TYPE --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $KEY
+          if [[ ${ACCOUNT} -ne 0 && ${KEY} -ne 0 ]]; then
+            python3 main.py --chrome --account --email-api ${MAIL} --repeat ${ACCOUNT}
+            python3 main.py --chrome ${KEY_TYPE} --email-api ${MAIL} --repeat ${KEY}
             echo "Account:" >> $GITHUB_STEP_SUMMARY
             cat ./*ACCOUNTS.txt >> $GITHUB_STEP_SUMMARY
             echo -e "\nKey:" >> $GITHUB_STEP_SUMMARY
             cat ./*KEYS.txt >> $GITHUB_STEP_SUMMARY
-          elif [[ $ACCOUNT -ne 0 ]]; then
-            python3 main.py --chrome --account --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $ACCOUNT
+          elif [[ ${ACCOUNT} -ne 0 ]]; then
+            python3 main.py --chrome --account --email-api ${MAIL} --repeat ${ACCOUNT}
             echo -e "\nAccount:" >> $GITHUB_STEP_SUMMARY
             cat ./*ACCOUNTS.txt >> $GITHUB_STEP_SUMMARY
-          elif [[ $KEY -ne 0 ]]; then
-            python3 main.py --chrome $KEY_TYPE --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $KEY
+          elif [[ ${KEY} -ne 0 ]]; then
+            python3 main.py --chrome ${KEY_TYPE} --email-api ${MAIL} --repeat ${KEY}
             echo -e "\nKey:" >> $GITHUB_STEP_SUMMARY
             cat ./*KEYS.txt >> $GITHUB_STEP_SUMMARY
           fi
 
-          # Set environment variables to be used in later steps
-          echo "ACCOUNTS=${ACCOUNTS}" >> $GITHUB_ENV
-          echo "KEYS=${KEYS}" >> $GITHUB_ENV
-
-      - name: Verify Variables
-        run: |
-          echo "ACCOUNTS: ${ACCOUNTS}"
-          echo "KEYS: ${KEYS}"
-
-      - name: Send email with results
+      - name: Send email with results (Linux)
         uses: dawidd6/action-send-mail@v3
         with:
           to: vtdinh92@gmail.com
-          subject: "ESET KeyGen Results"
+          subject: "ESET KeyGen Results (Linux)"
           body: |
             The generation process is complete.
-            Accounts: ${{ env.ACCOUNTS }}
-            Keys: ${{ env.KEYS }}
+            See the attached keys and accounts.
           from: vtdinh92@gmail.com
           server_address: smtp.gmail.com
           server_port: 587
           username: vtdinh92@gmail.com
           password: ${{ secrets.SMTP_PASSWORD }}
           secure: false
+          attachments: ./*KEYS.txt, ./*ACCOUNTS.txt
+
+  macOS:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate key (macOS)
+        if: github.event.inputs.os == 'macOS'
+        run: |
+          ACCOUNT=${{ github.event.inputs.account }}
+          KEY=${{ github.event.inputs.key }}
+          MAIL=${{ github.event.inputs.mail }}
+          KEY_TYPE=${{ github.event.inputs.key_type }}
+
+          git clone https://github.com/rzc0d3r/ESET-KeyGen.git
+          cd ESET-KeyGen
+          
+          brew install python
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+          python3 main.py --chrome ${KEY_TYPE} --email-api ${MAIL} --repeat ${KEY}
+
+  Windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate key (Windows)
+        if: github.event.inputs.os == 'Windows'
+        run: |
+          $ACCOUNT="${{ github.event.inputs.account }}"
+          $KEY="${{ github.event.inputs.key }}"
+          $MAIL="${{ github.event.inputs.mail }}"
+          $KEY_TYPE="${{ github.event.inputs.key_type }}"
+
+          git clone https://github.com/rzc0d3r/ESET-KeyGen.git
+          cd ESET-KeyGen
+
+          pip install -r requirements.txt
+
+          python3 main.py --chrome --account --email-api $MAIL --repeat $ACCOUNT
+          python3 main.py --chrome $KEY_TYPE --email-api $MAIL --repeat $KEY
