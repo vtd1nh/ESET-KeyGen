@@ -96,7 +96,6 @@ jobs:
           cd ESET-KeyGen
           
           # Setup env
-          sudo apt update
           sudo apt install -y python3-pip python3-venv
           python3 -m venv venv
           source venv/bin/activate
@@ -106,24 +105,21 @@ jobs:
           ACCOUNTS=""
           KEYS=""
 
-          if ($ACCOUNT -ne 0 -and $KEY -ne 0) {
-              python3 main.py --chrome --account --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $ACCOUNT
-              python3 main.py --chrome $KEY_TYPE --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $KEY
-              echo "Account:" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
-              Get-Content -Path ./*ACCOUNTS.txt | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
-              echo "`nKey:" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
-              Get-Content -Path ./*KEYS.txt | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
-          }
-          elseif ($ACCOUNT -ne 0) {
-              python3 main.py --chrome --account --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $ACCOUNT
-              echo "`nAccount:" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
-              Get-Content -Path ./*ACCOUNTS.txt | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
-          }
-          elseif ($KEY -ne 0) {
-              python3 main.py --chrome $KEY_TYPE --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $KEY
-              echo "`nKey:" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
-              Get-Content -Path ./*KEYS.txt | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
-          }
+          if [[ $ACCOUNT -ne 0 && $KEY -ne 0 ]]; then
+            python3 main.py --chrome --account --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $ACCOUNT
+            python3 main.py --chrome $KEY_TYPE --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $KEY
+            echo "Account:" >> $GITHUB_STEP_SUMMARY
+            cat ./*ACCOUNTS.txt >> $GITHUB_STEP_SUMMARY
+            echo -e "\nKey:" >> $GITHUB_STEP_SUMMARY
+            cat ./*KEYS.txt >> $GITHUB_STEP_SUMMARY
+          elif [[ $ACCOUNT -ne 0 ]]; then
+            python3 main.py --chrome --account --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $ACCOUNT
+            echo -e "\nAccount:" >> $GITHUB_STEP_SUMMARY
+            cat ./*ACCOUNTS.txt >> $GITHUB_STEP_SUMMARY
+          elif [[ $KEY -ne 0 ]]; then
+            python3 main.py --chrome $KEY_TYPE --email-api $MAIL --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar --repeat $KEY
+            echo -e "\nKey:" >> $GITHUB_STEP_SUMMARY
+            cat ./*KEYS.txt >> $GITHUB_STEP_SUMMARY
           fi
 
           # Set environment variables to be used in later steps
@@ -138,15 +134,15 @@ jobs:
       - name: Send email with results
         uses: dawidd6/action-send-mail@v3
         with:
-          to: vtdinh92@gmail.com # Địa chỉ email nhận
+          to: vtdinh92@gmail.com
           subject: "ESET KeyGen Results"
           body: |
             The generation process is complete.
             Accounts: ${{ env.ACCOUNTS }}
             Keys: ${{ env.KEYS }}
-          from: vtdinh92@gmail.com # Địa chỉ email gửi
+          from: vtdinh92@gmail.com
           server_address: smtp.gmail.com
-          server_port: 587 # Cổng 587 cho TLS
+          server_port: 587
           username: vtdinh92@gmail.com
-          password: ${{ secrets.SMTP_PASSWORD }} # Sử dụng biến bí mật
-          secure: false # Kết nối bảo mật (TLS)
+          password: ${{ secrets.SMTP_PASSWORD }}
+          secure: false
