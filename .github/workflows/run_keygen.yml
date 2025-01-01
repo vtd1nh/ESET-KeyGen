@@ -52,17 +52,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Chrome
+      - name: Install Google Chrome
         run: |
           sudo apt update
-          sudo apt install -y chromium-browser chromium-chromedriver
-          chromium-browser --version
+          sudo apt install -y wget curl unzip
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt install -y ./google-chrome-stable_current_amd64.deb
+          google-chrome --version
+
+      - name: Install ChromeDriver
+        run: |
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d'.' -f1)
+          CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}")
+          wget -N "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip"
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/bin/chromedriver
+          sudo chmod +x /usr/bin/chromedriver
           chromedriver --version
 
       - name: Set default values
         id: set_defaults
         run: |
-          # Kiểm tra xem workflow có chạy từ cron hay không
           if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
             ACCOUNT=0
             KEY=1
@@ -95,11 +105,14 @@ jobs:
           git clone https://github.com/rzc0d3r/ESET-KeyGen.git
           cd ESET-KeyGen
           
-          # Setup env
           sudo apt install -y python3-pip python3-venv
           python3 -m venv venv
           source venv/bin/activate
           pip install -r requirements.txt
+
+          python3 main.py --chrome ${KEY_TYPE} --email-api ${MAIL} \
+          --skip-webdriver-menu --skip-update-check --no-logo --disable-progress-bar \
+          --custom-browser-location "/usr/bin/google-chrome" 2>&1 | tee debug_log.txt
 
           # Initialize variables
           ACCOUNTS=""
