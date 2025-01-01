@@ -42,7 +42,7 @@ on:
         - macOS
         - Linux
         - Windows
-        default: macOS
+        default: Linux
 
 jobs:
   Linux:
